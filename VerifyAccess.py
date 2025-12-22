@@ -72,3 +72,47 @@ def access_control_node(state: GraphState):
             "auth_status": False, 
             "logs": [log_entry]
         }
+
+
+# Devamındaki ilgili kısımlar diğer partlara göre güncellenecek.
+
+from typing import Literal
+from langgraph.graph import StateGraph, END, START
+
+# Router, yetki kontrolünden sonraki akış
+def auth_router(state: GraphState) -> Literal["unauthorized_exit", "long_process_start"]:
+    """
+    Bu fonksiyon bir düğüm (node) değil, bir karar mekanizmasıdır.
+    Düğüm isimlerini string olarak döner.
+    """
+    if state["auth_status"]:
+        return "process_start"
+    else:
+        return "unauthorized_exit"
+
+
+workflow = StateGraph(GraphState)
+
+
+workflow.add_node("access_control", access_control_node) # Önceki adımda yazdığımız node
+workflow.add_node("unauthorized_exit", lambda state: {"response": "Access Denied: Unauthorized Action."})
+
+
+workflow.add_node("process_start", lambda state: state) 
+
+
+workflow.add_edge(START, "access_control")
+
+workflow.add_conditional_edges(
+    "access_control", 
+    auth_router,
+    {
+        "process_start": "process_start", 
+        "unauthorized_exit": "unauthorized_exit"
+    }
+)
+
+
+workflow.add_edge("unauthorized_exit", END)
+
+app = workflow.compile()

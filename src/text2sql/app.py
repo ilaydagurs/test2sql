@@ -11,7 +11,8 @@ def run(user_message: str, user_role: str, sql: Optional[str] = None) -> Orchest
     state: OrchestratorState = {
         "user_message": user_message,
         "user_role": user_role,
-        "provided_sql": sql,
+         "sql": sql,
+"provided_sql": sql,
         "errors": [],
         "trace_id": str(uuid.uuid4()),
     }

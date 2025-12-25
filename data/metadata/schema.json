@@ -1,0 +1,200 @@
+{
+  "schema": "bank",
+  "tables": [
+    {
+      "table": "bank.Cards_Master",
+      "type": "BASE TABLE",
+      "row_count": 5,
+      "columns": [
+        {
+          "name": "CardID",
+          "type": "INTEGER"
+        },
+        {
+          "name": "CardType",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "IssuerBank",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "CustomerID",
+          "type": "INTEGER"
+        }
+      ]
+    },
+    {
+      "table": "bank.Customers_Bank",
+      "type": "BASE TABLE",
+      "row_count": 5,
+      "columns": [
+        {
+          "name": "CustomerID",
+          "type": "INTEGER"
+        },
+        {
+          "name": "CustomerName",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "Gender",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "Age",
+          "type": "INTEGER"
+        },
+        {
+          "name": "City",
+          "type": "VARCHAR"
+        }
+      ]
+    },
+    {
+      "table": "bank.Merchants_Master",
+      "type": "BASE TABLE",
+      "row_count": 5,
+      "columns": [
+        {
+          "name": "MerchantID",
+          "type": "INTEGER"
+        },
+        {
+          "name": "MerchantName",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "Category",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "City",
+          "type": "VARCHAR"
+        }
+      ]
+    },
+    {
+      "table": "bank.Transactions_Bank",
+      "type": "BASE TABLE",
+      "row_count": 10,
+      "columns": [
+        {
+          "name": "TransactionID",
+          "type": "INTEGER"
+        },
+        {
+          "name": "TransactionDate",
+          "type": "DATE"
+        },
+        {
+          "name": "CustomerID",
+          "type": "INTEGER"
+        },
+        {
+          "name": "CardID",
+          "type": "INTEGER"
+        },
+        {
+          "name": "MerchantID",
+          "type": "INTEGER"
+        },
+        {
+          "name": "Amount",
+          "type": "DECIMAL(10,2)"
+        },
+        {
+          "name": "TransactionType",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "Mode",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "City",
+          "type": "VARCHAR"
+        }
+      ]
+    },
+    {
+      "table": "bank.v_transactions_enriched",
+      "type": "VIEW",
+      "row_count": null,
+      "columns": [
+        {
+          "name": "TransactionID",
+          "type": "INTEGER"
+        },
+        {
+          "name": "TransactionDate",
+          "type": "DATE"
+        },
+        {
+          "name": "CustomerID",
+          "type": "INTEGER"
+        },
+        {
+          "name": "CardID",
+          "type": "INTEGER"
+        },
+        {
+          "name": "MerchantID",
+          "type": "INTEGER"
+        },
+        {
+          "name": "Amount",
+          "type": "DECIMAL(10,2)"
+        },
+        {
+          "name": "TransactionType",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "Mode",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "City",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "CustomerName",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "Gender",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "Age",
+          "type": "INTEGER"
+        },
+        {
+          "name": "CustomerCity",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "CardType",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "IssuerBank",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "MerchantName",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "MerchantCategory",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "MerchantCity",
+          "type": "VARCHAR"
+        }
+      ]
+    }
+  ]
+}

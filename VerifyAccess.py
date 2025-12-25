@@ -1,13 +1,28 @@
-from typing import TypedDict, List, Annotated, Optional
+from typing import TypedDict, List, Optional, Annotated
 import operator
 import datetime
 
-class GraphState(TypedDict):
+class GraphState(TypedDict, total=False):
+    # Identity & Auth
     user_id: str
-    metadata: dict  # Beklenen: {"action": "...", "resource": "..."}
+    user_role: str
+    metadata: dict  # {action, resource}
     auth_status: bool
-    logs: Annotated[List[str], operator.add] 
+
+    # SQL
+    sql_query: str
+    is_sql_safe: bool
+
+    # Context
+    db_type: str
+    schema_version: str
+
+    # Output
     response: str
+
+    # Observability
+    logs: Annotated[List[str], operator.add]
+
 
 # DB'ye taşınabilir, geçici banka çalışanı ve yetki matrisi
 BANK_AUTH_MATRIX = {
@@ -43,35 +58,31 @@ def access_control_node(state: GraphState):
     user_id = state["user_id"]
     action = state["metadata"].get("action")
     resource = state["metadata"].get("resource")
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
+
+    timestamp = datetime.datetime.utcnow().isoformat()
     user_info = BANK_USERS.get(user_id)
 
-    # Eğer kayıtlı olmayan bir kullanıcı erişmeye çalışırsa
     if not user_info:
-        log_entry = f"[{timestamp}] SECURITY ALERT: Access attempt by unknown User ID: {user_id}."
-        return {"auth_status": False, "logs": [log_entry]}
-    
-    user_role = user_info["role"]
-    
-    # Matristen ilgili role ait yetkileri alıyor
-    allowed_actions = BANK_AUTH_MATRIX.get(user_role, {}).get(resource, [])
-    
-    is_authorized = action in allowed_actions
-    
-    # Logları kaydediyor ve yetkisi varsa True, yoksa False döndürüyor.
-    if is_authorized:
-        log_entry = f"[{timestamp}] SUCCESS: {user_role} ({user_id}) authorized for {action} on {resource}."
         return {
-            "auth_status": True, 
-            "logs": [log_entry]
+            "auth_status": False,
+            "logs": [f"[{timestamp}] AUTH_FAIL: Unknown user {user_id}"]
         }
-    else:
-        log_entry = f"[{timestamp}] FAILURE: {user_role} ({user_id}) denied access for {action} on {resource}."
+
+    role = user_info["role"]
+    allowed_actions = BANK_AUTH_MATRIX.get(role, {}).get(resource, [])
+
+    if action not in allowed_actions:
         return {
-            "auth_status": False, 
-            "logs": [log_entry]
+            "auth_status": False,
+            "user_role": role,
+            "logs": [f"[{timestamp}] AUTH_DENY: {role} cannot {action} on {resource}"]
         }
+
+    return {
+        "auth_status": True,
+        "user_role": role,
+        "logs": [f"[{timestamp}] AUTH_OK: {role} authorized"]
+    }
 
 
 # Devamındaki ilgili kısımlar diğer partlara göre güncellenecek.

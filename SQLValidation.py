@@ -1,35 +1,43 @@
 import re
 import datetime
 
+ALLOWED_TABLES = {
+    "SAFE_ORDERS",
+    "SAFE_CUSTOMERS",
+    "SAFE_LOANS"
+}
+
+MAX_LIMIT = 500
+
 def sql_validation_node(state: GraphState):
-    # Boşlukları sil ve hepsini büyük harf yap
     query = state.get("sql_query", "").strip().upper()
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ts = datetime.datetime.utcnow().isoformat()
 
-    # Komut olarak sadece bunlarla başlayabilir
-    allowed_starts = ("SELECT", "WITH")
-    if not query.startswith(allowed_starts):
-        log = f"[{timestamp}] SQL_DENIED: Query must start with SELECT or WITH. Detected: {query[:10]}..."
-        return {"is_sql_safe": False, "logs": [log]}
+    if not query.startswith(("SELECT", "WITH")):
+        return {"is_sql_safe": False, "logs": [f"[{ts}] SQL_DENY: Not read-only"]}
 
-    # Column isimlerini etkilemeden yasaklı komutlar
-    forbidden_pattern = r"\b(DELETE|UPDATE|INSERT|DROP|TRUNCATE|ALTER|CREATE|RENAME|GRANT|REVOKE|REPLACE|EXEC|CALL)\b"
-    
-    if re.search(forbidden_pattern, query):
-        
-        detected = re.findall(forbidden_pattern, query)
-        log = f"[{timestamp}] SQL_DENIED: Forbidden keyword(s) detected: {detected}"
-        return {"is_sql_safe": False, "logs": [log]}
+    forbidden = r"\b(DELETE|UPDATE|INSERT|DROP|ALTER|CREATE|EXEC|CALL)\b"
+    if re.search(forbidden, query):
+        return {"is_sql_safe": False, "logs": [f"[{ts}] SQL_DENY: Forbidden keyword"]}
 
-    # Birden fazla komutu engelleme
-    if ";" in query.rstrip(";"):
-        log = f"[{timestamp}] SQL_DENIED: Multiple statements (;) detected."
-        return {"is_sql_safe": False, "logs": [log]}
+    # LIMIT zorunlu
+    limit_match = re.search(r"LIMIT\s+(\d+)", query)
+    if not limit_match:
+        return {"is_sql_safe": False, "logs": [f"[{ts}] SQL_DENY: LIMIT required"]}
 
-    # Komut güvenli
+    if int(limit_match.group(1)) > MAX_LIMIT:
+        return {"is_sql_safe": False, "logs": [f"[{ts}] SQL_DENY: LIMIT too large"]}
+
+    # Table whitelist
+    tables = re.findall(r"FROM\s+([A-Z_]+)", query)
+    for t in tables:
+        if t not in ALLOWED_TABLES:
+            return {"is_sql_safe": False, "logs": [f"[{ts}] SQL_DENY: Table {t} not allowed"]}
+
     return {
-        "is_sql_safe": True, 
-        "logs": [f"[{timestamp}] SQL_SUCCESS: Complex Read-Only query validated."]
+        "is_sql_safe": True,
+        "logs": [f"[{ts}] SQL_OK: Query validated"]
     }
+
 
 workflow.add_node("sql_validation", sql_validation_node)

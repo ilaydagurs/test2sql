@@ -1,0 +1,15 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Raw upstream dataset (do not commit PerkBank source files)
+data/raw/
+
+# DuckDB artifacts (decide later if you want to commit the .duckdb)
+data/duckdb/*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/

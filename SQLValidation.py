@@ -40,4 +40,51 @@ def sql_validation_node(state: GraphState):
     }
 
 
+from langgraph.graph import StateGraph, START, END
+
+workflow = StateGraph(GraphState)
+
+workflow.add_node("access_control", access_control_node)
 workflow.add_node("sql_validation", sql_validation_node)
+
+workflow.add_node(
+    "unauthorized_exit",
+    lambda s: {"response": "403 Forbidden", "logs": ["SECURITY_EXIT"]}
+)
+
+workflow.add_node(
+    "sql_rejected",
+    lambda s: {"response": "Invalid SQL", "logs": ["SQL_EXIT"]}
+)
+
+workflow.add_node(
+    "process_start",
+    lambda s: {"response": "Authorized & SQL Safe"}
+)
+
+workflow.add_edge(START, "access_control")
+
+workflow.add_conditional_edges(
+    "access_control",
+    lambda s: "process_start" if s["auth_status"] else "unauthorized_exit",
+    {
+        "process_start": "sql_validation",
+        "unauthorized_exit": "unauthorized_exit"
+    }
+)
+
+workflow.add_conditional_edges(
+    "sql_validation",
+    lambda s: "process_start" if s["is_sql_safe"] else "sql_rejected",
+    {
+        "process_start": "process_start",
+        "sql_rejected": "sql_rejected"
+    }
+)
+
+workflow.add_edge("unauthorized_exit", END)
+workflow.add_edge("sql_rejected", END)
+workflow.add_edge("process_start", END)
+
+app = workflow.compile()
+

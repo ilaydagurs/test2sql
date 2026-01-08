@@ -1,0 +1,25 @@
+{
+  "schema": "bank",
+  "tables": {
+    "bank.v_transactions_enriched": [
+      "TransactionID",
+      "TransactionDate",
+      "CustomerID",
+      "CardID",
+      "MerchantID",
+      "Amount",
+      "TransactionType",
+      "Mode",
+      "City",
+      "CustomerName",
+      "Gender",
+      "Age",
+      "CustomerCity",
+      "CardType",
+      "IssuerBank",
+      "MerchantName",
+      "MerchantCategory",
+      "MerchantCity"
+    ]
+  }
+}
